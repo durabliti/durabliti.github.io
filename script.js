@@ -1,12 +1,10 @@
 let socket;
 let isConnected = false;
-let isCameraOn = false;
-let isMicOn = false;
-let videoStream = null;
+let isScreenSharing = false;
+let screenStream = null;
 
 const videoElement = document.getElementById('videoElement');
-const cameraBtn = document.getElementById('cameraBtn');
-const micBtn = document.getElementById('micBtn');
+const screenShareBtn = document.getElementById('screenShareBtn');
 const startBtn = document.getElementById('startBtn');
 const statusElement = document.getElementById('status');
 
@@ -42,54 +40,28 @@ function connectWebSocket() {
     };
 }
 
-// Камера и микрофон
-async function toggleCamera() {
-    if (isCameraOn) {
-        // Если камера уже включена, останавливаем ее
-        if (videoStream) {
-            let tracks = videoStream.getTracks();
+// Функция для начала/остановки демонстрации экрана
+async function toggleScreenShare() {
+    if (isScreenSharing) {
+        // Если демонстрация экрана уже идет, останавливаем поток
+        if (screenStream) {
+            let tracks = screenStream.getTracks();
             tracks.forEach(track => track.stop()); // Останавливаем все треки
         }
         videoElement.srcObject = null; // Очищаем видео элемент
-        isCameraOn = false;
-        cameraBtn.innerText = 'Enable Camera';
+        isScreenSharing = false;
+        screenShareBtn.innerText = 'Start Screen Share';
     } else {
-        // Включаем камеру
+        // Начинаем демонстрацию экрана
         try {
-            videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
-            videoElement.srcObject = videoStream; // Показываем видео на странице
-            isCameraOn = true;
-            cameraBtn.innerText = 'Disable Camera';
+            screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+            videoElement.srcObject = screenStream; // Показываем экран на странице
+            isScreenSharing = true;
+            screenShareBtn.innerText = 'Stop Screen Share';
         } catch (error) {
-            console.error('Ошибка при включении камеры:', error);
+            console.error('Ошибка при получении экрана:', error);
+            alert('Ошибка при получении доступа к экрану.');
         }
-    }
-}
-
-function toggleMic() {
-    if (isMicOn) {
-        if (videoStream) {
-            let tracks = videoStream.getAudioTracks();
-            tracks.forEach(track => track.stop()); // Останавливаем микрофон
-        }
-        isMicOn = false;
-        micBtn.innerText = 'Enable Microphone';
-    } else {
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then(function(stream) {
-                // Получаем и добавляем аудио в видео стрим
-                if (videoStream) {
-                    let audioTrack = stream.getAudioTracks()[0];
-                    videoStream.addTrack(audioTrack);
-                } else {
-                    videoStream = stream;
-                }
-                isMicOn = true;
-                micBtn.innerText = 'Disable Microphone';
-            })
-            .catch(function(error) {
-                console.error('Ошибка при включении микрофона:', error);
-            });
     }
 }
 
@@ -100,8 +72,7 @@ startBtn.addEventListener('click', function() {
     }
 });
 
-cameraBtn.addEventListener('click', toggleCamera);
-micBtn.addEventListener('click', toggleMic);
+screenShareBtn.addEventListener('click', toggleScreenShare);
 
 // Автоматически подключаем WebSocket при загрузке
 window.onload = function() {
