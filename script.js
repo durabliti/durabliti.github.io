@@ -1,7 +1,6 @@
 let socket;
 let isConnected = false;
 
-// Функция для подключения WebSocket
 function connectWebSocket() {
     if (isConnected) {
         console.log("WebSocket уже подключен");
@@ -30,8 +29,8 @@ function connectWebSocket() {
 
     socket.onmessage = function(event) {
         console.log('Сообщение от сервера:', event.data);
-        // Отправляем обратно серверу то же сообщение
-        socket.send(event.data);  // Эхо-сервер возвращает то же сообщение обратно
+        // Эхо-сервер возвращает то же сообщение обратно
+        socket.send(event.data);  
     };
 }
 
@@ -42,5 +41,7 @@ document.getElementById('startBtn').addEventListener('click', function() {
     }
 });
 
-// Подключаемся автоматически при загрузке страницы
-connectWebSocket();
+// Добавим небольшое ожидание, чтобы все элементы загружались перед подключением
+window.onload = function() {
+    console.log("Страница загружена, готова к подключению.");
+};
