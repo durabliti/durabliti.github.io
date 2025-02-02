@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebSocket and Media Controls</title>
+    <title>WebSocket and Screen Share</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -16,8 +16,8 @@
         }
         video {
             margin-top: 20px;
-            width: 300px;
-            height: 200px;
+            width: 600px;
+            height: 400px;
             background-color: black;
         }
         button {
@@ -26,16 +26,15 @@
     </style>
 </head>
 <body>
-    <h1>WebSocket and Media Controls</h1>
+    <h1>WebSocket and Screen Sharing</h1>
     
     <!-- WebSocket -->
     <button id="startBtn">Start WebSocket</button>
     <p id="status">Status: Not Connected</p>
 
-    <h2>Media Controls</h2>
-    <!-- Camera and microphone controls -->
-    <button id="cameraBtn">Enable Camera</button>
-    <button id="micBtn">Enable Microphone</button>
+    <h2>Screen Share Controls</h2>
+    <!-- Screen share control button -->
+    <button id="screenShareBtn">Start Screen Share</button>
     <br>
     <video id="videoElement" autoplay></video>
 
