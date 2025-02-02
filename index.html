@@ -3,14 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebSocket Example</title>
+    <title>WebSocket and Media Controls</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        #status {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        video {
+            margin-top: 20px;
+            width: 300px;
+            height: 200px;
+            background-color: black;
+        }
+        button {
+            margin: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1>WebSocket Connection Example</h1>
+    <h1>WebSocket and Media Controls</h1>
+    
+    <!-- WebSocket -->
     <button id="startBtn">Start WebSocket</button>
     <p id="status">Status: Not Connected</p>
 
-    <!-- Подключаем JavaScript файл -->
+    <h2>Media Controls</h2>
+    <!-- Camera and microphone controls -->
+    <button id="cameraBtn">Enable Camera</button>
+    <button id="micBtn">Enable Microphone</button>
+    <br>
+    <video id="videoElement" autoplay></video>
+
     <script src="script.js"></script>
 </body>
 </html>
