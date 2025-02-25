@@ -1,43 +1,99 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebSocket and Screen Share</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-            background-color: #f4f4f4;
-        }
-        #status {
-            margin-top: 10px;
-            font-weight: bold;
-        }
-        video {
-            margin-top: 20px;
-            width: 600px;
-            height: 400px;
-            background-color: black;
-        }
-        button {
-            margin: 5px;
-        }
-    </style>
-</head>
-<body>
-    <h1>WebSocket and Screen Sharing</h1>
-    
-    <!-- WebSocket -->
-    <button id="startBtn">Start WebSocket</button>
-    <p id="status">Status: Not Connected</p>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
 
-    <h2>Screen Share Controls</h2>
-    <!-- Screen share control button -->
-    <button id="screenShareBtn">Start Screen Share</button>
-    <br>
-    <video id="videoElement" autoplay></video>
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 0;
+    text-align: center;
+}
 
-    <script src="script.js"></script>
-</body>
-</html>
+nav ul {
+    list-style: none;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin: 0 10px;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+.product-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+}
+
+.product-card {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    width: 200px;
+    text-align: center;
+}
+
+.product-card img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+
+.product-card h3 {
+    margin: 10px 0;
+}
+
+.product-card .price {
+    font-weight: bold;
+    color: #333;
+}
+
+button {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #218838;
+}
+
+#cart {
+    padding: 20px;
+    background-color: #fff;
+    margin: 20px;
+    border-radius: 5px;
+}
+
+#cart-items {
+    list-style: none;
+    padding: 0;
+}
+
+#cart-items li {
+    padding: 5px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+footer {
+    text-align: center;
+    padding: 10px;
+    background-color: #333;
+    color: #fff;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
