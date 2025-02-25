@@ -1,99 +1,59 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интернет-магазин</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Добро пожаловать в наш магазин!</h1>
+        <nav>
+            <ul>
+                <li><a href="#products">Товары</a></li>
+                <li><a href="#cart">Корзина</a></li>
+            </ul>
+        </nav>
+    </header>
 
-header {
-    background-color: #333;
-    color: #fff;
-    padding: 10px 0;
-    text-align: center;
-}
+    <section id="products">
+        <h2>Наши товары</h2>
+        <div class="product-grid">
+            <!-- Пример товара 1 -->
+            <div class="product-card">
+                <img src="images/bread.jpg" alt="Хлеб">
+                <h3>Хлеб</h3>
+                <p>Свежий батон.</p>
+                <p class="price">50 руб.</p>
+                <button onclick="addToCart('Хлеб', 50)">Добавить в корзину</button>
+            </div>
 
-nav ul {
-    list-style: none;
-    padding: 0;
-}
+            <!-- Пример товара 2 -->
+            <div class="product-card">
+                <img src="images/milk.jpg" alt="Молоко">
+                <h3>Молоко</h3>
+                <p>Свежее молоко, 1 литр.</p>
+                <p class="price">80 руб.</p>
+                <button onclick="addToCart('Молоко', 80)">Добавить в корзину</button>
+            </div>
 
-nav ul li {
-    display: inline;
-    margin: 0 10px;
-}
+            <!-- Добавьте больше товаров по аналогии -->
+        </div>
+    </section>
 
-nav ul li a {
-    color: #fff;
-    text-decoration: none;
-}
+    <section id="cart">
+        <h2>Корзина</h2>
+        <ul id="cart-items">
+            <!-- Сюда будут добавляться товары -->
+        </ul>
+        <p>Итого: <span id="total">0</span> руб.</p>
+    </section>
 
-.product-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    padding: 20px;
-}
+    <footer>
+        <p>&copy; 2023 Интернет-магазин</p>
+    </footer>
 
-.product-card {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 15px;
-    width: 200px;
-    text-align: center;
-}
-
-.product-card img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 5px;
-}
-
-.product-card h3 {
-    margin: 10px 0;
-}
-
-.product-card .price {
-    font-weight: bold;
-    color: #333;
-}
-
-button {
-    background-color: #28a745;
-    color: #fff;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #218838;
-}
-
-#cart {
-    padding: 20px;
-    background-color: #fff;
-    margin: 20px;
-    border-radius: 5px;
-}
-
-#cart-items {
-    list-style: none;
-    padding: 0;
-}
-
-#cart-items li {
-    padding: 5px 0;
-    border-bottom: 1px solid #ddd;
-}
-
-footer {
-    text-align: center;
-    padding: 10px;
-    background-color: #333;
-    color: #fff;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-}
+    <script src="script.js"></script>
+</body>
+</html>
