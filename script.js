@@ -1,22 +1,26 @@
-function uploadFiles() {
-    const input = document.getElementById('fileInput');
-    const files = input.files;
-    const fileList = document.getElementById('fileList');
+document.getElementById('uploadForm').addEventListener('submit', async function (event) {
+    event.preventDefault();
 
-    fileList.innerHTML = ''; // Очистить список файлов
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    const messageDiv = document.getElementById('message');
 
-    for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const listItem = document.createElement('div');
-        listItem.textContent = file.name;
-
-        const downloadLink = document.createElement('a');
-        downloadLink.href = URL.createObjectURL(file);
-        downloadLink.download = file.name;
-        downloadLink.textContent = 'Скачать';
-        downloadLink.style.marginLeft = '10px';
-
-        listItem.appendChild(downloadLink);
-        fileList.appendChild(listItem);
+    if (!file) {
+        messageDiv.textContent = 'Пожалуйста, выберите файл.';
+        return;
     }
-}
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/upload', {
+        method: 'POST',
+        body: formData,
+    });
+
+    if (response.ok) {
+        messageDiv.textContent = 'Файл успешно загружен на локальный диск.';
+    } else {
+        messageDiv.textContent = 'Ошибка при загрузке файла.';
+    }
+});
