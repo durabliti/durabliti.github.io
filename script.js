@@ -1,26 +1,22 @@
-let cart = [];
-let total = 0;
+function uploadFiles() {
+    const input = document.getElementById('fileInput');
+    const files = input.files;
+    const fileList = document.getElementById('fileList');
 
-function addToCart(name, price) {
-    cart.push({ name, price });
-    total += price;
-    updateCart();
-}
+    fileList.innerHTML = ''; // Очистить список файлов
 
-function updateCart() {
-    const cartItems = document.getElementById('cart-items');
-    const totalElement = document.getElementById('total');
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const listItem = document.createElement('div');
+        listItem.textContent = file.name;
 
-    // Очищаем корзину
-    cartItems.innerHTML = '';
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(file);
+        downloadLink.download = file.name;
+        downloadLink.textContent = 'Скачать';
+        downloadLink.style.marginLeft = '10px';
 
-    // Добавляем товары в корзину
-    cart.forEach(item => {
-        const li = document.createElement('li');
-        li.textContent = `${item.name} - ${item.price} руб.`;
-        cartItems.appendChild(li);
-    });
-
-    // Обновляем итоговую сумму
-    totalElement.textContent = total;
+        listItem.appendChild(downloadLink);
+        fileList.appendChild(listItem);
+    }
 }
