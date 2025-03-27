@@ -1,4 +1,4 @@
-document.getElementById('uploadForm').addEventListener('submit', async function (event) {
+document.getElementById('uploadForm').addEventListener('submit', function(event) {
     event.preventDefault();
 
     const fileInput = document.getElementById('fileInput');
@@ -10,17 +10,6 @@ document.getElementById('uploadForm').addEventListener('submit', async function 
         return;
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetch('/upload', {
-        method: 'POST',
-        body: formData,
-    });
-
-    if (response.ok) {
-        messageDiv.textContent = 'Файл успешно загружен на локальный диск.';
-    } else {
-        messageDiv.textContent = 'Ошибка при загрузке файла.';
-    }
+    // Отображение информации о файле
+    messageDiv.textContent = `Файл "${file.name}" успешно выбран. Размер: ${file.size} байт.`;
 });
