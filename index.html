@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Загрузка и скачивание файлов</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Загрузка файлов на локальный диск</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Загрузка файлов</h1>
-    <input type="file" id="fileInput" multiple>
-    <button onclick="uploadFiles()">Загрузить файлы</button>
-    <div class="file-list" id="fileList"></div>
-
+    <div class="container">
+        <h1>Загрузка файла на локальный диск</h1>
+        <form id="uploadForm">
+            <input type="file" id="fileInput" required>
+            <button type="submit">Загрузить</button>
+        </form>
+        <div id="message"></div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
