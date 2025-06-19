@@ -8,7 +8,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Выберите файл для загрузки</h1>
+        <h1>Выберите regregergerфайл для загрузки</h1>
         <form id="uploadForm">
             <input type="file" id="fileInput" required>
             <button type="submit">Загрузить</button>
