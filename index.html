@@ -1,20 +1,29 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Загрузка файлов</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Загрузка файлов</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: #f0f0f0;
+      margin: 0;
+    }
+    iframe {
+      width: 100%;
+      max-width: 700px;
+      height: 600px;
+      border: none;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      background: white;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Выберите файл для загрузки</h1>
-        <form id="uploadForm">
-            <input type="file" id="fileInput" required>
-            <button type="submit">Загрузить</button>
-        </form>
-        <div id="message"></div>
-    </div>
-    <script src="script.js"></script>
+  <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSeUgLsWsC9mNlUyVjUTWJrJj214kIt99dfqRlwh839KH39huA/viewform?embedded=true" allow="camera; microphone">Загрузка…</iframe>
 </body>
 </html>
