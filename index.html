@@ -1,1 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Test</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #0f172a;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: #1e293b;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            width: 320px;
+        }
+        .speed-value {
+            font-size: 4rem;
+            font-weight: 800;
+            color: #38bdf8;
+            margin: 10px 0;
+        }
+        .unit {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            letter-spacing: 1px;
+        }
+        button {
+            background-color: #38bdf8;
+            color: #0f172a;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 0.75rem;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 25px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #7dd3fc;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            background-color: #475569;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .status {
+            margin-top: 15px;
+            font-size: 0.85rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
 
+<div class="card">
+    <div class="unit">DOWNLOAD</div>
+    <div id="result" class="speed-value">0.0</div>
+    <div class="unit">Mbps</div>
+    <div id="status" class="status">Ready to test</div>
+    <button id="start-btn">START TEST</button>
+</div>
+
+<script>
+    const startBtn = document.getElementById('start-btn');
+    const resultDisplay = document.getElementById('result');
+    const statusDisplay = document.getElementById('status');
+
+    const testFile = "https://upload.wikimedia.org/wikipedia/commons/3/3d/LARGE_ELEVATED_TEMPERATURE_STAINLESS_STEEL_VALVE_CUSTOM_FABRICATION.jpg"; 
+
+    startBtn.addEventListener('click', async () => {
+        startBtn.disabled = true;
+        statusDisplay.textContent = "Testing...";
+        resultDisplay.textContent = "0.0";
+
+        const startTime = new Date().getTime();
+        
+        try {
+            const response = await fetch(testFile + "?n=" + startTime);
+            if (!response.ok) throw new Error();
+            
+            const blob = await response.blob();
+            const endTime = new Date().getTime();
+            
+            const duration = (endTime - startTime) / 1000;
+            const bits = blob.size * 8;
+            const mbps = (bits / (1024 * 1024) / duration).toFixed(1);
+
+            resultDisplay.textContent = mbps;
+            statusDisplay.textContent = "Completed";
+        } catch (error) {
+            statusDisplay.textContent = "Error occurred";
+            resultDisplay.textContent = "—";
+        } finally {
+            startBtn.disabled = false;
+        }
+    });
+</script>
+
+</body>
+</html>
