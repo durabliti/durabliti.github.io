@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Watch Waterfall Test</title>
+    <style>
+        /* Убираем все системные отступы браузера */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Запрещаем скролл, чтобы картинка стояла мертво */
+            background-color: #000;
+        }
+
+        .gradient-canvas {
+            width: 100vw;
+            height: 100vh;
+            /* Яркий градиент для проверки линзы стекла */
+            background: linear-gradient(135deg, #ff0055, #00fbff, #7a00ff, #ffea00);
+            background-size: 400% 400%;
+            animation: flow 5s ease infinite;
+            
+            /* Тонкая белая обводка по самому краю экрана */
+            /* На AW 8 она будет казаться лежащей на боку корпуса */
+            border: 2.5px solid rgba(255, 255, 255, 0.8);
+            border-radius: 45px; /* Примерный радиус экрана часов */
+        }
+
+        @keyframes flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient-canvas"></div>
+</body>
+</html>
