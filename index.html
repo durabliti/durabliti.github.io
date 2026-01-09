@@ -3,227 +3,378 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Network Diagnostic</title>
+    <title>Удаление объектов с фото</title>
     <style>
         :root {
-            --bg: #050505;
-            --panel: #0f0f11;
-            --accent: #ffffff;
-            --text: #ffffff;
-            --dim: #5c5c5c;
-            --border: #1c1c1e;
+            color-scheme: dark;
+            --bg: #0b0b0f;
+            --panel: #15151d;
+            --border: #2a2a35;
+            --accent: #6ee7ff;
+            --text: #f4f4f7;
+            --muted: #9aa0aa;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
             margin: 0;
+            font-family: "Inter", "Segoe UI", system-ui, sans-serif;
             background: var(--bg);
             color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .app {
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            -webkit-font-smoothing: antialiased;
+            flex-direction: column;
+            gap: 24px;
+            padding: 32px clamp(16px, 4vw, 48px);
         }
 
-        .card {
-            width: 340px;
-            background: var(--panel);
-            border-radius: 32px;
-            padding: 40px;
-            border: 1px solid var(--border);
-            position: relative;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-        }
-
-        .header {
+        header {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .tag {
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--dim);
-        }
-
-        .display {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .speed-num {
-            font-size: 84px;
-            font-weight: 800;
-            line-height: 1;
-            letter-spacing: -4px;
-            font-variant-numeric: tabular-nums;
-            transition: all 0.1s ease;
-        }
-
-        .speed-unit {
-            font-size: 14px;
-            color: var(--dim);
-            margin-top: 12px;
-            font-weight: 600;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            flex-direction: column;
             gap: 12px;
-            margin-bottom: 30px;
         }
 
-        .stat-box {
-            background: #161618;
+        header h1 {
+            margin: 0;
+            font-size: clamp(24px, 3vw, 36px);
+        }
+
+        header p {
+            margin: 0;
+            color: var(--muted);
+            max-width: 620px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(240px, 320px) 1fr;
+            gap: 24px;
+        }
+
+        .panel {
+            background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 20px;
-            padding: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
         }
 
-        .stat-label {
-            display: block;
-            font-size: 9px;
-            color: var(--dim);
-            text-transform: uppercase;
-            font-weight: 700;
-            margin-bottom: 6px;
+        .panel h2 {
+            margin: 0;
+            font-size: 18px;
         }
 
-        .stat-val {
-            font-size: 16px;
-            font-weight: 700;
+        .control {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--muted);
         }
 
-        .btn {
+        .control input[type="file"] {
+            padding: 10px;
+            border-radius: 12px;
+            background: #1b1b24;
+            border: 1px dashed var(--border);
+            color: var(--text);
+        }
+
+        .control input[type="range"] {
             width: 100%;
-            height: 64px;
-            background: var(--accent);
-            color: #000;
-            border: none;
-            border-radius: 20px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
         }
 
-        .btn:active { transform: scale(0.96); }
-        .btn:disabled { background: var(--border); color: var(--dim); cursor: not-allowed; }
+        .actions {
+            display: grid;
+            gap: 10px;
+        }
 
-        .progress-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 3px;
+        button {
+            height: 44px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .primary {
             background: var(--accent);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 0 4px 4px 0;
-            box-shadow: 0 0 15px rgba(255,255,255,0.5);
+            color: #020305;
+        }
+
+        .secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .canvas-wrap {
+            position: relative;
+            background: #0d0f15;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            min-height: 360px;
+            display: grid;
+            place-items: center;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .mask-indicator {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .note {
+            font-size: 13px;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="app">
+        <header>
+            <h1>Удаление объектов с фото</h1>
+            <p>Загрузи изображение, закрась объект кистью и нажми «Удалить». Алгоритм заполняет отмеченные области ближайшими пикселями — работает локально в браузере.</p>
+        </header>
 
-<div class="card">
-    <div id="prog" class="progress-bar"></div>
-    <div class="header">
-        <span class="tag">System Active</span>
-        <span id="ping" style="font-size: 12px; color: var(--dim); font-weight: 600;">— ms</span>
+        <section class="layout">
+            <div class="panel">
+                <h2>Инструменты</h2>
+
+                <label class="control">
+                    Фото
+                    <input id="fileInput" type="file" accept="image/*">
+                </label>
+
+                <label class="control">
+                    Размер кисти: <span id="brushValue">32</span>px
+                    <input id="brushSize" type="range" min="8" max="96" value="32">
+                </label>
+
+                <div class="actions">
+                    <button id="removeBtn" class="primary" disabled>Удалить объект</button>
+                    <button id="clearMaskBtn" class="secondary" disabled>Стереть маску</button>
+                    <button id="resetBtn" class="secondary" disabled>Сбросить фото</button>
+                </div>
+
+                <p class="note">
+                    Подсказка: закрашивай область плотнее, чтобы удалить объект. Для сложных фото можно повторить процесс несколько раз.
+                </p>
+            </div>
+
+            <div class="panel canvas-wrap">
+                <span class="mask-indicator">Маска: красный</span>
+                <canvas id="photoCanvas" width="960" height="640"></canvas>
+                <canvas id="maskCanvas" width="960" height="640"></canvas>
+            </div>
+        </section>
     </div>
 
-    <div class="display">
-        <div id="speed" class="speed-num">0</div>
-        <div class="speed-unit">Mbps / Download</div>
-    </div>
+    <script>
+        const fileInput = document.getElementById("fileInput");
+        const brushSize = document.getElementById("brushSize");
+        const brushValue = document.getElementById("brushValue");
+        const removeBtn = document.getElementById("removeBtn");
+        const clearMaskBtn = document.getElementById("clearMaskBtn");
+        const resetBtn = document.getElementById("resetBtn");
+        const photoCanvas = document.getElementById("photoCanvas");
+        const maskCanvas = document.getElementById("maskCanvas");
+        const photoCtx = photoCanvas.getContext("2d");
+        const maskCtx = maskCanvas.getContext("2d");
 
-    <div class="stats-grid">
-        <div class="stat-box">
-            <span class="stat-label">Peak</span>
-            <span id="peak" class="stat-val">0</span>
-        </div>
-        <div class="stat-box">
-            <span class="stat-label">Data Pack</span>
-            <span id="total" class="stat-val">0 / 2 GB</span>
-        </div>
-    </div>
+        let img = new Image();
+        let drawing = false;
+        let lastPhotoData = null;
 
-    <button id="run">start</button>
-</div>
+        maskCanvas.style.position = "absolute";
+        maskCanvas.style.inset = 0;
 
-<script>
-    const dom = {
-        speed: document.getElementById('speed'),
-        ping: document.getElementById('ping'),
-        peak: document.getElementById('peak'),
-        total: document.getElementById('total'),
-        btn: document.getElementById('run'),
-        prog: document.getElementById('prog')
-    };
+        function resizeCanvases(width, height) {
+            photoCanvas.width = width;
+            photoCanvas.height = height;
+            maskCanvas.width = width;
+            maskCanvas.height = height;
+        }
 
-    const SIZE = 2 * 1024 * 1024 * 1024;
-    const ENDPOINT = "https://speed.cloudflare.com/__down?bytes=1073741824";
+        function drawImageToCanvas(image) {
+            resizeCanvases(image.width, image.height);
+            photoCtx.clearRect(0, 0, photoCanvas.width, photoCanvas.height);
+            maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+            photoCtx.drawImage(image, 0, 0);
+            lastPhotoData = photoCtx.getImageData(0, 0, photoCanvas.width, photoCanvas.height);
+            removeBtn.disabled = false;
+            clearMaskBtn.disabled = false;
+            resetBtn.disabled = false;
+        }
 
-    let topS = 0;
+        function startDrawing(event) {
+            if (!img.src) return;
+            drawing = true;
+            drawMask(event);
+        }
 
-    async function stream(start, offset) {
-        const res = await fetch(ENDPOINT + "&cache=" + Date.now());
-        const reader = res.body.getReader();
-        let received = offset;
+        function stopDrawing() {
+            drawing = false;
+            maskCtx.beginPath();
+        }
 
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+        function drawMask(event) {
+            if (!drawing) return;
+            const rect = maskCanvas.getBoundingClientRect();
+            const scaleX = maskCanvas.width / rect.width;
+            const scaleY = maskCanvas.height / rect.height;
+            const x = (event.clientX - rect.left) * scaleX;
+            const y = (event.clientY - rect.top) * scaleY;
 
-            received += value.length;
-            const now = performance.now();
-            const dur = (now - start) / 1000;
-            
-            if (dur > 0) {
-                const mbps = Math.floor((received * 8) / 1000000 / dur);
-                if (mbps > topS) {
-                    topS = mbps;
-                    dom.peak.innerText = topS + " Mbps";
+            maskCtx.fillStyle = "rgba(255, 0, 64, 0.6)";
+            maskCtx.beginPath();
+            maskCtx.arc(x, y, Number(brushSize.value), 0, Math.PI * 2);
+            maskCtx.fill();
+        }
+
+        function clearMask() {
+            maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+        }
+
+        function resetPhoto() {
+            if (!lastPhotoData) return;
+            photoCtx.putImageData(lastPhotoData, 0, 0);
+            clearMask();
+        }
+
+        function getMaskData() {
+            return maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+        }
+
+        function inpaint(imageData, maskData) {
+            const { width, height, data } = imageData;
+            const mask = maskData.data;
+            const out = new ImageData(new Uint8ClampedArray(data), width, height);
+            let remaining = 0;
+
+            const maskFlags = new Uint8Array(width * height);
+            for (let i = 0; i < maskFlags.length; i += 1) {
+                const alpha = mask[i * 4 + 3];
+                if (alpha > 0) {
+                    maskFlags[i] = 1;
+                    remaining += 1;
                 }
-                dom.speed.innerText = mbps;
-                dom.total.innerText = (received / 1073741824).toFixed(1) + " / 2 GB";
-                dom.prog.style.width = (received / SIZE * 100) + "%";
             }
+
+            const neighbors = [
+                [-1, 0], [1, 0], [0, -1], [0, 1],
+                [-1, -1], [1, -1], [-1, 1], [1, 1]
+            ];
+
+            let iterations = 0;
+            while (remaining > 0 && iterations < 60) {
+                iterations += 1;
+                let updated = 0;
+                const newMask = maskFlags.slice();
+
+                for (let y = 0; y < height; y += 1) {
+                    for (let x = 0; x < width; x += 1) {
+                        const idx = y * width + x;
+                        if (maskFlags[idx] === 0) continue;
+
+                        let r = 0;
+                        let g = 0;
+                        let b = 0;
+                        let count = 0;
+                        for (const [dx, dy] of neighbors) {
+                            const nx = x + dx;
+                            const ny = y + dy;
+                            if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+                            const nidx = ny * width + nx;
+                            if (maskFlags[nidx] === 0) {
+                                const base = nidx * 4;
+                                r += out.data[base];
+                                g += out.data[base + 1];
+                                b += out.data[base + 2];
+                                count += 1;
+                            }
+                        }
+                        if (count > 0) {
+                            const base = idx * 4;
+                            out.data[base] = r / count;
+                            out.data[base + 1] = g / count;
+                            out.data[base + 2] = b / count;
+                            newMask[idx] = 0;
+                            updated += 1;
+                        }
+                    }
+                }
+
+                if (updated === 0) break;
+                maskFlags.set(newMask);
+                remaining -= updated;
+            }
+
+            return out;
         }
-        return received;
-    }
 
-    async function start() {
-        dom.btn.disabled = true;
-        topS = 0;
-        dom.peak.innerText = "0";
-        
-        const t0 = performance.now();
-        try {
-            await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
-            dom.ping.innerText = Math.round(performance.now() - t0) + " ms";
-        } catch { dom.ping.innerText = "—"; }
-
-        const tStart = performance.now();
-
-        try {
-            let current = await stream(tStart, 0);
-            await stream(tStart, current);
-        } catch (e) {
-            dom.speed.innerText = "ERR";
-        } finally {
-            dom.btn.disabled = false;
+        function removeObject() {
+            if (!img.src) return;
+            const imageData = photoCtx.getImageData(0, 0, photoCanvas.width, photoCanvas.height);
+            const maskData = getMaskData();
+            const result = inpaint(imageData, maskData);
+            photoCtx.putImageData(result, 0, 0);
+            clearMask();
         }
-    }
 
-    dom.btn.addEventListener('click', start);
-</script>
+        fileInput.addEventListener("change", (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img = new Image();
+                img.onload = () => drawImageToCanvas(img);
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
 
+        maskCanvas.addEventListener("mousedown", startDrawing);
+        maskCanvas.addEventListener("mousemove", drawMask);
+        window.addEventListener("mouseup", stopDrawing);
+        maskCanvas.addEventListener("mouseleave", stopDrawing);
+
+        brushSize.addEventListener("input", () => {
+            brushValue.textContent = brushSize.value;
+        });
+
+        removeBtn.addEventListener("click", removeObject);
+        clearMaskBtn.addEventListener("click", clearMask);
+        resetBtn.addEventListener("click", resetPhoto);
+    </script>
 </body>
 </html>
