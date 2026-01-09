@@ -134,6 +134,20 @@
             display: block;
         }
 
+        #photoCanvas,
+        #maskCanvas {
+            position: absolute;
+            inset: 0;
+        }
+
+        #maskCanvas {
+            z-index: 2;
+        }
+
+        #photoCanvas {
+            z-index: 1;
+        }
+
         .mask-indicator {
             position: absolute;
             top: 16px;
@@ -150,6 +164,12 @@
             font-size: 13px;
             color: var(--muted);
             line-height: 1.5;
+        }
+
+        .status {
+            font-size: 13px;
+            color: var(--accent);
+            min-height: 18px;
         }
 
         @media (max-width: 900px) {
@@ -186,6 +206,8 @@
                     <button id="resetBtn" class="secondary" disabled>Сбросить фото</button>
                 </div>
 
+                <div id="status" class="status">Загрузите фото, чтобы начать.</div>
+
                 <p class="note">
                     Подсказка: закрашивай область плотнее, чтобы удалить объект. Для сложных фото можно повторить процесс несколько раз.
                 </p>
@@ -208,6 +230,7 @@
         const resetBtn = document.getElementById("resetBtn");
         const photoCanvas = document.getElementById("photoCanvas");
         const maskCanvas = document.getElementById("maskCanvas");
+        const statusEl = document.getElementById("status");
         const photoCtx = photoCanvas.getContext("2d");
         const maskCtx = maskCanvas.getContext("2d");
 
@@ -215,8 +238,8 @@
         let drawing = false;
         let lastPhotoData = null;
 
-        maskCanvas.style.position = "absolute";
-        maskCanvas.style.inset = 0;
+        const MAX_WIDTH = 1280;
+        const MAX_HEIGHT = 900;
 
         function resizeCanvases(width, height) {
             photoCanvas.width = width;
@@ -225,20 +248,31 @@
             maskCanvas.height = height;
         }
 
+        function fitImageSize(width, height) {
+            const scale = Math.min(MAX_WIDTH / width, MAX_HEIGHT / height, 1);
+            return {
+                width: Math.round(width * scale),
+                height: Math.round(height * scale)
+            };
+        }
+
         function drawImageToCanvas(image) {
-            resizeCanvases(image.width, image.height);
+            const fitted = fitImageSize(image.width, image.height);
+            resizeCanvases(fitted.width, fitted.height);
             photoCtx.clearRect(0, 0, photoCanvas.width, photoCanvas.height);
             maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
-            photoCtx.drawImage(image, 0, 0);
+            photoCtx.drawImage(image, 0, 0, fitted.width, fitted.height);
             lastPhotoData = photoCtx.getImageData(0, 0, photoCanvas.width, photoCanvas.height);
             removeBtn.disabled = false;
             clearMaskBtn.disabled = false;
             resetBtn.disabled = false;
+            statusEl.textContent = "Закрасьте объект кистью.";
         }
 
         function startDrawing(event) {
             if (!img.src) return;
             drawing = true;
+            maskCanvas.setPointerCapture(event.pointerId);
             drawMask(event);
         }
 
@@ -263,16 +297,26 @@
 
         function clearMask() {
             maskCtx.clearRect(0, 0, maskCanvas.width, maskCanvas.height);
+            statusEl.textContent = "Маска очищена.";
         }
 
         function resetPhoto() {
             if (!lastPhotoData) return;
             photoCtx.putImageData(lastPhotoData, 0, 0);
             clearMask();
+            statusEl.textContent = "Фото восстановлено.";
         }
 
         function getMaskData() {
             return maskCtx.getImageData(0, 0, maskCanvas.width, maskCanvas.height);
+        }
+
+        function hasMask(maskData) {
+            const mask = maskData.data;
+            for (let i = 3; i < mask.length; i += 4) {
+                if (mask[i] > 0) return true;
+            }
+            return false;
         }
 
         function inpaint(imageData, maskData) {
@@ -346,9 +390,15 @@
             if (!img.src) return;
             const imageData = photoCtx.getImageData(0, 0, photoCanvas.width, photoCanvas.height);
             const maskData = getMaskData();
+            if (!hasMask(maskData)) {
+                statusEl.textContent = "Сначала закрасьте объект кистью.";
+                return;
+            }
+            statusEl.textContent = "Удаляем объект...";
             const result = inpaint(imageData, maskData);
             photoCtx.putImageData(result, 0, 0);
             clearMask();
+            statusEl.textContent = "Готово! Можно удалить ещё одну область.";
         }
 
         fileInput.addEventListener("change", (event) => {
@@ -363,10 +413,10 @@
             reader.readAsDataURL(file);
         });
 
-        maskCanvas.addEventListener("mousedown", startDrawing);
-        maskCanvas.addEventListener("mousemove", drawMask);
-        window.addEventListener("mouseup", stopDrawing);
-        maskCanvas.addEventListener("mouseleave", stopDrawing);
+        maskCanvas.addEventListener("pointerdown", startDrawing);
+        maskCanvas.addEventListener("pointermove", drawMask);
+        maskCanvas.addEventListener("pointerup", stopDrawing);
+        maskCanvas.addEventListener("pointerleave", stopDrawing);
 
         brushSize.addEventListener("input", () => {
             brushValue.textContent = brushSize.value;
