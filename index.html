@@ -1,228 +1,304 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Network Diagnostic</title>
-    <style>
-        :root {
-            --bg: #050505;
-            --panel: #0f0f11;
-            --accent: #ffffff;
-            --text: #ffffff;
-            --dim: #5c5c5c;
-            --border: #1c1c1e;
-        }
+<meta charset="UTF-8">
+<title>Multiplayer RPC Documentation</title>
 
-        body {
-            margin: 0;
-            background: var(--bg);
-            color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            -webkit-font-smoothing: antialiased;
-        }
+<style>
+:root {
+    --bg: #0f1116;
+    --panel: #151823;
+    --text: #e6e6e6;
+    --accent: #4da6ff;
+    --border: #23273a;
+    --muted: #9aa0aa;
+}
 
-        .card {
-            width: 340px;
-            background: var(--panel);
-            border-radius: 32px;
-            padding: 40px;
-            border: 1px solid var(--border);
-            position: relative;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-        }
+body.light {
+    --bg: #f4f6fa;
+    --panel: #ffffff;
+    --text: #1b1b1b;
+    --accent: #005fcc;
+    --border: #ddd;
+    --muted: #555;
+}
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
+body.scp {
+    --bg: #0a0a0a;
+    --panel: #111;
+    --text: #e0e0e0;
+    --accent: #c40000;
+    --border: #1f1f1f;
+    --muted: #777;
+}
 
-        .tag {
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--dim);
-        }
+* {
+    box-sizing: border-box;
+    font-family: system-ui, Arial, sans-serif;
+}
 
-        .display {
-            text-align: center;
-            margin-bottom: 40px;
-        }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+}
 
-        .speed-num {
-            font-size: 84px;
-            font-weight: 800;
-            line-height: 1;
-            letter-spacing: -4px;
-            font-variant-numeric: tabular-nums;
-            transition: all 0.1s ease;
-        }
+/* SIDEBAR */
+nav {
+    width: 260px;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 20px;
+    position: fixed;
+    height: 100vh;
+}
 
-        .speed-unit {
-            font-size: 14px;
-            color: var(--dim);
-            margin-top: 12px;
-            font-weight: 600;
-        }
+nav h2 {
+    margin-top: 0;
+    font-size: 18px;
+}
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 30px;
-        }
+nav a {
+    display: block;
+    color: var(--text);
+    text-decoration: none;
+    margin: 10px 0;
+    font-size: 14px;
+}
 
-        .stat-box {
-            background: #161618;
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 16px;
-        }
+nav a:hover {
+    color: var(--accent);
+}
 
-        .stat-label {
-            display: block;
-            font-size: 9px;
-            color: var(--dim);
-            text-transform: uppercase;
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
+.theme-switch {
+    margin-top: 20px;
+}
 
-        .stat-val {
-            font-size: 16px;
-            font-weight: 700;
-        }
+button {
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    padding: 6px 10px;
+    cursor: pointer;
+    margin: 4px 0;
+    width: 100%;
+}
 
-        .btn {
-            width: 100%;
-            height: 64px;
-            background: var(--accent);
-            color: #000;
-            border: none;
-            border-radius: 20px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1);
-        }
+/* CONTENT */
+main {
+    margin-left: 260px;
+    padding: 40px;
+    max-width: 1000px;
+}
 
-        .btn:active { transform: scale(0.96); }
-        .btn:disabled { background: var(--border); color: var(--dim); cursor: not-allowed; }
+section {
+    margin-bottom: 60px;
+}
 
-        .progress-bar {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 3px;
-            background: var(--accent);
-            width: 0%;
-            transition: width 0.3s ease;
-            border-radius: 0 4px 4px 0;
-            box-shadow: 0 0 15px rgba(255,255,255,0.5);
-        }
-    </style>
+h1 {
+    font-size: 36px;
+}
+
+h2 {
+    margin-top: 40px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+}
+
+h3 {
+    margin-top: 20px;
+}
+
+p {
+    line-height: 1.6;
+}
+
+code {
+    background: #00000044;
+    padding: 3px 6px;
+    border-radius: 4px;
+}
+
+ul {
+    margin-left: 20px;
+}
+
+.note {
+    background: var(--panel);
+    border-left: 4px solid var(--accent);
+    padding: 10px;
+    margin: 20px 0;
+}
+</style>
 </head>
+
 <body>
 
-<div class="card">
-    <div id="prog" class="progress-bar"></div>
-    <div class="header">
-        <span class="tag">System Active</span>
-        <span id="ping" style="font-size: 12px; color: var(--dim); font-weight: 600;">— ms</span>
-    </div>
+<nav>
+    <h2>Multiplayer Docs</h2>
+    <a href="#intro">Введение</a>
+    <a href="#architecture">Архитектура</a>
+    <a href="#rpc">RPC система</a>
+    <a href="#mirror">Mirror World</a>
+    <a href="#sync">Синхронизация</a>
+    <a href="#security">Безопасность</a>
+    <a href="#examples">Примеры</a>
 
-    <div class="display">
-        <div id="speed" class="speed-num">0</div>
-        <div class="speed-unit">Mbps / Download</div>
+    <div class="theme-switch">
+        <button onclick="setTheme('dark')">Dark</button>
+        <button onclick="setTheme('light')">Light</button>
+        <button onclick="setTheme('scp')">SCP</button>
     </div>
+</nav>
 
-    <div class="stats-grid">
-        <div class="stat-box">
-            <span class="stat-label">Peak</span>
-            <span id="peak" class="stat-val">0</span>
-        </div>
-        <div class="stat-box">
-            <span class="stat-label">Data Pack</span>
-            <span id="total" class="stat-val">0 / 2 GB</span>
-        </div>
-    </div>
+<main>
 
-    <button id="run">start</button>
+<section id="intro">
+<h1>Universal Multiplayer Documentation</h1>
+<p>
+Эта документация описывает универсальную систему мультиплеера,
+основанную на <b>клиент–серверной архитектуре</b> и <b>RPC</b>.
+Она не привязана к конкретному движку или языку.
+</p>
+
+<div class="note">
+Это не теория ради теории — всё описано так,
+как это реально делают в нормальных сетевых играх.
 </div>
+</section>
+
+<section id="architecture">
+<h2>Архитектура</h2>
+
+<h3>Сервер</h3>
+<ul>
+    <li>Единственный источник истины</li>
+    <li>Хранит состояние мира</li>
+    <li>Проверяет все действия игроков</li>
+</ul>
+
+<h3>Клиент</h3>
+<ul>
+    <li>Отправляет запросы</li>
+    <li>Получает обновления</li>
+    <li>Отрисовывает локальную копию мира</li>
+</ul>
+
+<p>
+Клиенты <b>никогда</b> не меняют мир напрямую.
+</p>
+</section>
+
+<section id="rpc">
+<h2>RPC (Remote Procedure Call)</h2>
+
+<p>
+RPC — это вызов функций на удалённой стороне.
+Игрок не «двигается», он <i>просит сервер</i> выполнить действие.
+</p>
+
+<h3>Client → Server</h3>
+<ul>
+    <li><code>RPC_Move(direction)</code></li>
+    <li><code>RPC_Action(type)</code></li>
+    <li><code>RPC_Interact(objectId)</code></li>
+</ul>
+
+<h3>Server → Client</h3>
+<ul>
+    <li><code>RPC_Spawn(entity)</code></li>
+    <li><code>RPC_StateUpdate(snapshot)</code></li>
+    <li><code>RPC_Despawn(id)</code></li>
+</ul>
+
+<div class="note">
+Если сервер не подтвердил RPC — действия не существует.
+</div>
+</section>
+
+<section id="mirror">
+<h2>Mirror World</h2>
+
+<p>
+Mirror World — это зеркальная версия мира,
+используемая для эффектов, альтернативных измерений или режимов.
+</p>
+
+<ul>
+    <li>Зеркалирование по оси X или Z</li>
+    <li>Отражённые позиции</li>
+    <li>Отдельные правила взаимодействия</li>
+</ul>
+
+<p>
+Сервер хранит оригинальное состояние,
+а клиенту отправляет уже преобразованные координаты.
+</p>
+</section>
+
+<section id="sync">
+<h2>Синхронизация</h2>
+
+<p>
+Сервер регулярно отправляет снапшоты:
+</p>
+
+<ul>
+    <li>Позиции</li>
+    <li>Повороты</li>
+    <li>Состояния</li>
+    <li>Анимации</li>
+</ul>
+
+<p>
+Клиент применяет интерполяцию,
+чтобы скрыть задержки сети.
+</p>
+</section>
+
+<section id="security">
+<h2>Безопасность</h2>
+
+<ul>
+    <li>Валидация всех RPC</li>
+    <li>Анти-спам RPC</li>
+    <li>Проверка расстояний и состояний</li>
+</ul>
+
+<div class="note">
+Если логика на клиенте — это не защита.
+</div>
+</section>
+
+<section id="examples">
+<h2>Практика</h2>
+
+<p>
+Подходит для:
+</p>
+
+<ul>
+    <li>SCP-подобных игр</li>
+    <li>Кооперативов</li>
+    <li>PvP</li>
+    <li>Экспериментальных режимов</li>
+</ul>
+
+<p>
+Эта модель масштабируется от 2 до сотен игроков.
+</p>
+</section>
+
+</main>
 
 <script>
-    const dom = {
-        speed: document.getElementById('speed'),
-        ping: document.getElementById('ping'),
-        peak: document.getElementById('peak'),
-        total: document.getElementById('total'),
-        btn: document.getElementById('run'),
-        prog: document.getElementById('prog')
-    };
-
-    const SIZE = 2 * 1024 * 1024 * 1024;
-    const ENDPOINT = "https://speed.cloudflare.com/__down?bytes=1073741824";
-
-    let topS = 0;
-
-    async function stream(start, offset) {
-        const res = await fetch(ENDPOINT + "&cache=" + Date.now());
-        const reader = res.body.getReader();
-        let received = offset;
-
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            received += value.length;
-            const now = performance.now();
-            const dur = (now - start) / 1000;
-            
-            if (dur > 0) {
-                const mbps = Math.floor((received * 8) / 1000000 / dur);
-                if (mbps > topS) {
-                    topS = mbps;
-                    dom.peak.innerText = topS + " Mbps";
-                }
-                dom.speed.innerText = mbps;
-                dom.total.innerText = (received / 1073741824).toFixed(1) + " / 2 GB";
-                dom.prog.style.width = (received / SIZE * 100) + "%";
-            }
-        }
-        return received;
+function setTheme(theme) {
+    document.body.className = '';
+    if (theme !== 'dark') {
+        document.body.classList.add(theme);
     }
-
-    async function start() {
-        dom.btn.disabled = true;
-        topS = 0;
-        dom.peak.innerText = "0";
-        
-        const t0 = performance.now();
-        try {
-            await fetch(window.location.href, { method: 'HEAD', cache: 'no-store' });
-            dom.ping.innerText = Math.round(performance.now() - t0) + " ms";
-        } catch { dom.ping.innerText = "—"; }
-
-        const tStart = performance.now();
-
-        try {
-            let current = await stream(tStart, 0);
-            await stream(tStart, current);
-        } catch (e) {
-            dom.speed.innerText = "ERR";
-        } finally {
-            dom.btn.disabled = false;
-        }
-    }
-
-    dom.btn.addEventListener('click', start);
+}
 </script>
 
 </body>
