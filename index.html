@@ -2,133 +2,105 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Multiplayer RPC Documentation</title>
+<title>Universal Multiplayer RPC Specification</title>
 
 <style>
 :root {
-    --bg: #0f1116;
-    --panel: #151823;
-    --text: #e6e6e6;
-    --accent: #4da6ff;
-    --border: #23273a;
-    --muted: #9aa0aa;
-}
-
-body.light {
-    --bg: #f4f6fa;
-    --panel: #ffffff;
-    --text: #1b1b1b;
-    --accent: #005fcc;
-    --border: #ddd;
-    --muted: #555;
-}
-
-body.scp {
-    --bg: #0a0a0a;
-    --panel: #111;
-    --text: #e0e0e0;
-    --accent: #c40000;
-    --border: #1f1f1f;
-    --muted: #777;
+  --bg:#0f1116;
+  --panel:#151823;
+  --text:#e6e6e6;
+  --muted:#9aa0aa;
+  --accent:#4da6ff;
+  --border:#23273a;
+  --code:#0b0d14;
 }
 
 * {
-    box-sizing: border-box;
-    font-family: system-ui, Arial, sans-serif;
+  box-sizing:border-box;
+  font-family:system-ui,Segoe UI,Arial,sans-serif;
 }
 
+html { scroll-behavior:smooth; }
+
 body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    display: flex;
+  margin:0;
+  display:flex;
+  background:var(--bg);
+  color:var(--text);
 }
 
 /* SIDEBAR */
 nav {
-    width: 260px;
-    background: var(--panel);
-    border-right: 1px solid var(--border);
-    padding: 20px;
-    position: fixed;
-    height: 100vh;
+  width:280px;
+  height:100vh;
+  position:fixed;
+  padding:20px;
+  background:var(--panel);
+  border-right:1px solid var(--border);
+  overflow:auto;
 }
 
-nav h2 {
-    margin-top: 0;
-    font-size: 18px;
+nav h1 {
+  font-size:18px;
+  margin:0 0 10px;
 }
 
 nav a {
-    display: block;
-    color: var(--text);
-    text-decoration: none;
-    margin: 10px 0;
-    font-size: 14px;
+  display:block;
+  padding:6px 0;
+  font-size:14px;
+  color:var(--text);
+  text-decoration:none;
 }
 
-nav a:hover {
-    color: var(--accent);
-}
-
-.theme-switch {
-    margin-top: 20px;
-}
-
-button {
-    background: var(--accent);
-    border: none;
-    color: #fff;
-    padding: 6px 10px;
-    cursor: pointer;
-    margin: 4px 0;
-    width: 100%;
-}
+nav a:hover { color:var(--accent); }
 
 /* CONTENT */
 main {
-    margin-left: 260px;
-    padding: 40px;
-    max-width: 1000px;
+  margin-left:280px;
+  padding:40px;
+  max-width:1100px;
 }
 
-section {
-    margin-bottom: 60px;
-}
-
-h1 {
-    font-size: 36px;
-}
+section { margin-bottom:70px; }
 
 h2 {
-    margin-top: 40px;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 6px;
+  border-bottom:1px solid var(--border);
+  padding-bottom:6px;
+  margin-top:50px;
 }
 
-h3 {
-    margin-top: 20px;
+h3 { margin-top:30px; }
+
+p { line-height:1.7; color:var(--muted); }
+
+pre {
+  background:var(--code);
+  padding:16px;
+  border-radius:6px;
+  overflow:auto;
+  font-size:14px;
 }
 
-p {
-    line-height: 1.6;
+table {
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
 }
 
-code {
-    background: #00000044;
-    padding: 3px 6px;
-    border-radius: 4px;
+th,td {
+  border:1px solid var(--border);
+  padding:8px;
+  text-align:left;
 }
 
-ul {
-    margin-left: 20px;
-}
+th { background:var(--panel); }
 
 .note {
-    background: var(--panel);
-    border-left: 4px solid var(--accent);
-    padding: 10px;
-    margin: 20px 0;
+  border-left:4px solid var(--accent);
+  padding:12px;
+  margin:20px 0;
+  background:var(--panel);
 }
 </style>
 </head>
@@ -136,170 +108,173 @@ ul {
 <body>
 
 <nav>
-    <h2>Multiplayer Docs</h2>
-    <a href="#intro">Введение</a>
-    <a href="#architecture">Архитектура</a>
-    <a href="#rpc">RPC система</a>
-    <a href="#mirror">Mirror World</a>
-    <a href="#sync">Синхронизация</a>
-    <a href="#security">Безопасность</a>
-    <a href="#examples">Примеры</a>
-
-    <div class="theme-switch">
-        <button onclick="setTheme('dark')">Dark</button>
-        <button onclick="setTheme('light')">Light</button>
-        <button onclick="setTheme('scp')">SCP</button>
-    </div>
+<h1>Multiplayer RPC</h1>
+<a href="#intro">Введение</a>
+<a href="#terms">Термины</a>
+<a href="#architecture">Архитектура</a>
+<a href="#protocol">Протокол</a>
+<a href="#lifecycle">Lifecycle</a>
+<a href="#rpc">RPC контракт</a>
+<a href="#state">State Sync</a>
+<a href="#prediction">Prediction</a>
+<a href="#errors">Ошибки</a>
+<a href="#security">Безопасность</a>
+<a href="#scaling">Масштабирование</a>
 </nav>
 
 <main>
 
 <section id="intro">
-<h1>Universal Multiplayer Documentation</h1>
+<h2>Введение</h2>
 <p>
-Эта документация описывает универсальную систему мультиплеера,
-основанную на <b>клиент–серверной архитектуре</b> и <b>RPC</b>.
-Она не привязана к конкретному движку или языку.
+Этот документ описывает универсальную клиент-серверную модель
+мультиплеера с серверным авторитетом.
+Подходит для игр, симуляторов и realtime-приложений.
 </p>
-
 <div class="note">
-Это не теория ради теории — всё описано так,
-как это реально делают в нормальных сетевых играх.
+Клиент считается недоверенным по умолчанию.
 </div>
+</section>
+
+<section id="terms">
+<h2>Термины</h2>
+<table>
+<tr><th>Термин</th><th>Описание</th></tr>
+<tr><td>Client</td><td>Источник ввода, не владеет состоянием</td></tr>
+<tr><td>Server</td><td>Единственный авторитет</td></tr>
+<tr><td>Entity</td><td>Объект мира</td></tr>
+<tr><td>RPC</td><td>Удалённый запрос действия</td></tr>
+<tr><td>Snapshot</td><td>Полное состояние мира</td></tr>
+<tr><td>Delta</td><td>Изменение состояния</td></tr>
+<tr><td>Tick</td><td>Шаг симуляции</td></tr>
+</table>
 </section>
 
 <section id="architecture">
 <h2>Архитектура</h2>
-
-<h3>Сервер</h3>
+<pre>
+Client ──RPC──▶ Server
+Client ◀─State─ Server
+</pre>
 <ul>
-    <li>Единственный источник истины</li>
-    <li>Хранит состояние мира</li>
-    <li>Проверяет все действия игроков</li>
+<li>Сервер владеет логикой</li>
+<li>Клиент отправляет намерения</li>
+<li>Сервер решает результат</li>
 </ul>
+</section>
 
-<h3>Клиент</h3>
-<ul>
-    <li>Отправляет запросы</li>
-    <li>Получает обновления</li>
-    <li>Отрисовывает локальную копию мира</li>
-</ul>
+<section id="protocol">
+<h2>Формат протокола</h2>
+<pre>
+{
+  "type": "handshake | rpc | state | error",
+  "clientId": 0,
+  "seq": 0,
+  "tick": 0,
+  "payload": {}
+}
+</pre>
+</section>
 
-<p>
-Клиенты <b>никогда</b> не меняют мир напрямую.
-</p>
+<section id="lifecycle">
+<h2>Lifecycle соединения</h2>
+<pre>
+CONNECT
+ ↓
+HANDSHAKE
+ ↓
+AUTH
+ ↓
+SPAWN
+ ↓
+SYNC LOOP
+ ↓
+DISCONNECT
+</pre>
 </section>
 
 <section id="rpc">
-<h2>RPC (Remote Procedure Call)</h2>
-
-<p>
-RPC — это вызов функций на удалённой стороне.
-Игрок не «двигается», он <i>просит сервер</i> выполнить действие.
-</p>
+<h2>RPC контракт</h2>
 
 <h3>Client → Server</h3>
-<ul>
-    <li><code>RPC_Move(direction)</code></li>
-    <li><code>RPC_Action(type)</code></li>
-    <li><code>RPC_Interact(objectId)</code></li>
-</ul>
+<table>
+<tr><th>RPC</th><th>Описание</th></tr>
+<tr><td>Move</td><td>Запрос перемещения</td></tr>
+<tr><td>Action</td><td>Использование способности</td></tr>
+<tr><td>Interact</td><td>Взаимодействие</td></tr>
+</table>
 
 <h3>Server → Client</h3>
-<ul>
-    <li><code>RPC_Spawn(entity)</code></li>
-    <li><code>RPC_StateUpdate(snapshot)</code></li>
-    <li><code>RPC_Despawn(id)</code></li>
-</ul>
-
-<div class="note">
-Если сервер не подтвердил RPC — действия не существует.
-</div>
+<table>
+<tr><th>RPC</th><th>Описание</th></tr>
+<tr><td>Spawn</td><td>Создание сущности</td></tr>
+<tr><td>Update</td><td>Обновление состояния</td></tr>
+<tr><td>Despawn</td><td>Удаление</td></tr>
+</table>
 </section>
 
-<section id="mirror">
-<h2>Mirror World</h2>
-
-<p>
-Mirror World — это зеркальная версия мира,
-используемая для эффектов, альтернативных измерений или режимов.
-</p>
-
+<section id="state">
+<h2>Синхронизация состояния</h2>
+<p>Используются два режима:</p>
 <ul>
-    <li>Зеркалирование по оси X или Z</li>
-    <li>Отражённые позиции</li>
-    <li>Отдельные правила взаимодействия</li>
+<li>Snapshot — восстановление</li>
+<li>Delta — основной поток</li>
 </ul>
 
-<p>
-Сервер хранит оригинальное состояние,
-а клиенту отправляет уже преобразованные координаты.
-</p>
+<pre>
+State {
+  entityId
+  position
+  rotation
+  velocity
+}
+</pre>
 </section>
 
-<section id="sync">
-<h2>Синхронизация</h2>
-
-<p>
-Сервер регулярно отправляет снапшоты:
-</p>
-
+<section id="prediction">
+<h2>Prediction & Reconciliation</h2>
 <ul>
-    <li>Позиции</li>
-    <li>Повороты</li>
-    <li>Состояния</li>
-    <li>Анимации</li>
+<li>Клиент применяет ввод локально</li>
+<li>Хранит историю input</li>
+<li>Сервер присылает authoritative state</li>
+<li>Клиент корректирует расхождения</li>
 </ul>
+</section>
 
-<p>
-Клиент применяет интерполяцию,
-чтобы скрыть задержки сети.
-</p>
+<section id="errors">
+<h2>Ошибки</h2>
+<pre>
+{
+  "type": "error",
+  "code": "INVALID_RPC",
+  "message": "Move vector too large"
+}
+</pre>
 </section>
 
 <section id="security">
 <h2>Безопасность</h2>
-
 <ul>
-    <li>Валидация всех RPC</li>
-    <li>Анти-спам RPC</li>
-    <li>Проверка расстояний и состояний</li>
+<li>Rate limiting RPC</li>
+<li>Server-side physics</li>
+<li>Distance checks</li>
+<li>Cooldown validation</li>
 </ul>
-
 <div class="note">
-Если логика на клиенте — это не защита.
+Логика на клиенте ≠ защита
 </div>
 </section>
 
-<section id="examples">
-<h2>Практика</h2>
-
-<p>
-Подходит для:
-</p>
-
+<section id="scaling">
+<h2>Масштабирование</h2>
 <ul>
-    <li>SCP-подобных игр</li>
-    <li>Кооперативов</li>
-    <li>PvP</li>
-    <li>Экспериментальных режимов</li>
+<li>Interest management</li>
+<li>World sharding</li>
+<li>Tick decoupling</li>
+<li>Region-based sync</li>
 </ul>
-
-<p>
-Эта модель масштабируется от 2 до сотен игроков.
-</p>
 </section>
 
 </main>
-
-<script>
-function setTheme(theme) {
-    document.body.className = '';
-    if (theme !== 'dark') {
-        document.body.classList.add(theme);
-    }
-}
-</script>
-
 </body>
 </html>
