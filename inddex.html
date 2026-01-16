@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Universal Multiplayer & Server-Authoritative Physics Specification</title>
+<title>Universal Multiplayer Networking & Server-Authoritative Physics — Full Specification</title>
 
 <style>
 :root {
@@ -30,7 +30,7 @@ body {
 }
 
 nav {
-  width:300px;
+  width:340px;
   height:100vh;
   position:fixed;
   padding:20px;
@@ -41,7 +41,7 @@ nav {
 
 nav h1 {
   font-size:18px;
-  margin-bottom:10px;
+  margin-bottom:12px;
 }
 
 nav a {
@@ -55,51 +55,41 @@ nav a {
 nav a:hover { color:var(--accent); }
 
 main {
-  margin-left:300px;
-  padding:40px;
-  max-width:1100px;
+  margin-left:340px;
+  padding:50px;
+  max-width:1300px;
 }
 
-section { margin-bottom:90px; }
+section { margin-bottom:120px; }
 
 h2 {
   border-bottom:1px solid var(--border);
   padding-bottom:6px;
-  margin-top:60px;
+  margin-top:80px;
 }
 
-h3 { margin-top:40px; }
+h3 { margin-top:50px; }
 
 p {
-  line-height:1.8;
+  line-height:2.0;
   color:var(--muted);
+  margin:18px 0;
 }
+
+ul { margin-left:25px; }
 
 pre {
   background:var(--code);
-  padding:16px;
+  padding:20px;
   border-radius:6px;
   overflow:auto;
   font-size:14px;
 }
 
-table {
-  width:100%;
-  border-collapse:collapse;
-  margin-top:20px;
-}
-
-th,td {
-  border:1px solid var(--border);
-  padding:8px;
-}
-
-th { background:var(--panel); }
-
 .note {
   border-left:4px solid var(--accent);
-  padding:14px;
-  margin:25px 0;
+  padding:18px;
+  margin:30px 0;
   background:var(--panel);
 }
 </style>
@@ -108,18 +98,22 @@ th { background:var(--panel); }
 <body>
 
 <nav>
-<h1>Multiplayer Spec</h1>
+<h1>Universal Multiplayer Spec</h1>
 <a href="#intro">Введение</a>
-<a href="#philosophy">Философия</a>
+<a href="#goals">Цели</a>
 <a href="#architecture">Архитектура</a>
 <a href="#threat">Модель угроз</a>
-<a href="#protocol">Протокол</a>
-<a href="#physics">Server-side Physics</a>
-<a href="#movement">Перемещение</a>
+<a href="#tick">Tick-система</a>
+<a href="#input">Input модель</a>
+<a href="#physics">Server Physics</a>
 <a href="#collision">Коллизии</a>
 <a href="#sync">Синхронизация</a>
-<a href="#security">Безопасность</a>
-<a href="#examples">Код</a>
+<a href="#interest">Interest Management</a>
+<a href="#anticheat">Anti-Cheat</a>
+<a href="#example">Reference Implementation</a>
+<a href="#playit">Playit / NAT</a>
+<a href="#mistakes">Типичные ошибки</a>
+<a href="#conclusion">Заключение</a>
 </nav>
 
 <main>
@@ -127,169 +121,158 @@ th { background:var(--panel); }
 <section id="intro">
 <h2>Введение</h2>
 <p>
-Этот документ описывает универсальную архитектуру мультиплеера,
-в которой сервер является единственным авторитетом над состоянием мира,
-включая физику, столкновения, скорость, гравитацию и взаимодействия.
+Этот документ является полной спецификацией универсальной
+клиент-серверной архитектуры для мультиплеерных игр,
+симуляторов и realtime-приложений.
 </p>
 <p>
-Документация предназначена для разработчиков игр, симуляторов и
-realtime-приложений, где критичны целостность данных, защита от читинга
-и предсказуемость поведения системы.
+В основе лежит принцип <b>server-authoritative simulation</b>,
+при котором сервер является единственным источником истины
+для всех аспектов состояния мира.
 </p>
 </section>
 
-<section id="philosophy">
-<h2>Философия системы</h2>
-<p>
-Клиент никогда не считается доверенной стороной.
-Любые данные, полученные от клиента, трактуются как намерения,
-а не как фактическое изменение состояния.
-</p>
-<p>
-Сервер:
-</p>
+<section id="goals">
+<h2>Цели системы</h2>
 <ul>
-<li>обрабатывает ввод</li>
-<li>рассчитывает физику</li>
-<li>разрешает коллизии</li>
-<li>публикует итоговое состояние</li>
+<li>Исключить доверие к клиенту</li>
+<li>Обеспечить детерминированную симуляцию</li>
+<li>Минимизировать возможности читинга</li>
+<li>Масштабироваться от 2 до тысяч клиентов</li>
+<li>Оставаться движок-независимой</li>
 </ul>
-
-<div class="note">
-Если клиент управляет физикой — это не мультиплеер, а симуляция доверия.
-</div>
 </section>
 
 <section id="architecture">
 <h2>Архитектура</h2>
 <pre>
-Client → Input → RPC → Server
-Server → Physics → State → Client
+Client (Input only)
+   ↓
+RPC / Input Stream
+   ↓
+Server
+   ↓
+Physics + Logic + Validation
+   ↓
+Authoritative State
+   ↓
+Clients (Visualization)
 </pre>
 
 <p>
-Клиент отправляет только ввод: направления, кнопки, намерения.
-Ни позиция, ни скорость, ни столкновения не принимаются от клиента.
+Клиент — исключительно источник ввода.
+Любая попытка передать состояние мира игнорируется.
 </p>
 </section>
 
 <section id="threat">
 <h2>Модель угроз</h2>
 <p>
-Система проектируется с учётом того, что клиент может:
+Система проектируется с учётом того, что клиент может быть полностью
+скомпрометирован.
 </p>
 <ul>
-<li>подделывать пакеты</li>
-<li>ускорять время</li>
-<li>отправлять невозможные значения</li>
-<li>модифицировать память</li>
+<li>Подмена пакетов</li>
+<li>Speed hack</li>
+<li>Teleport hack</li>
+<li>Memory editing</li>
+<li>Packet replay</li>
 </ul>
 
-<p>
-Поэтому сервер обязан проверять:
-</p>
-<ul>
-<li>длину векторов</li>
-<li>частоту RPC</li>
-<li>физическую достижимость действий</li>
-</ul>
+<div class="note">
+Единственный способ защиты — не принимать от клиента ничего,
+кроме намерений.
+</div>
 </section>
 
-<section id="protocol">
-<h2>Протокол сообщений</h2>
+<section id="tick">
+<h2>Tick-based симуляция</h2>
+<p>
+Сервер работает в дискретных шагах — ticks.
+Каждый tick имеет фиксированную длительность.
+</p>
+
 <pre>
-{
-  "type": "rpc | state | error",
-  "clientId": 12,
-  "tick": 102334,
-  "payload": {}
+TICK_RATE = 60
+DT = 1 / TICK_RATE
+</pre>
+
+<p>
+Все физические и логические расчёты происходят строго в рамках tick.
+</p>
+</section>
+
+<section id="input">
+<h2>Input модель</h2>
+<p>
+Клиент отправляет только ввод:
+</p>
+<ul>
+<li>направление движения</li>
+<li>нажатие кнопок</li>
+<li>активацию действий</li>
+</ul>
+
+<pre>
+InputPacket {
+  tick
+  moveX
+  moveY
+  actions
 }
 </pre>
 
 <p>
-Tick используется для синхронизации симуляции
-и предотвращения рассинхронизации.
+Сервер буферизует ввод и применяет его строго по tick.
 </p>
 </section>
 
 <section id="physics">
-<h2>Server-side Physics</h2>
+<h2>Server-Authoritative Physics</h2>
 <p>
-Вся физика рассчитывается исключительно на сервере.
-Это включает:
+Физика рассчитывается исключительно на сервере:
 </p>
 <ul>
-<li>гравитацию</li>
 <li>ускорение</li>
-<li>трение</li>
-<li>столкновения</li>
+<li>гравитация</li>
 <li>ограничения скорости</li>
+<li>трение</li>
 </ul>
-
-<p>
-Клиенту запрещено отправлять:
-</p>
-<ul>
-<li>позицию</li>
-<li>скорость</li>
-<li>результаты коллизий</li>
-</ul>
-
-<div class="note">
-Клиент отправляет только ввод, сервер решает результат.
-</div>
-</section>
-
-<section id="movement">
-<h2>Перемещение (Server authoritative)</h2>
-
-<p>
-Клиент отправляет направление движения.
-Сервер применяет силу, учитывая физические ограничения.
-</p>
 
 <pre>
-// Псевдокод сервера
-function applyMovement(player, inputDir, dt) {
-  if (length(inputDir) > 1)
-    reject(player)
-
-  acceleration = normalize(inputDir) * player.accel
-  player.velocity += acceleration * dt
-
-  if (length(player.velocity) > player.maxSpeed)
-    player.velocity = normalize(player.velocity) * player.maxSpeed
-}
+// Physics integration
+velocity += acceleration * dt
+position += velocity * dt
 </pre>
 
+<div class="note">
+Клиент никогда не сообщает результат движения.
+</div>
 </section>
 
 <section id="collision">
 <h2>Коллизии</h2>
 <p>
-Коллизии вычисляются только сервером.
-Клиент не может заявлять о попадании или столкновении.
+Коллизии являются частью серверной симуляции.
 </p>
 
 <pre>
-function resolveCollision(entity, world) {
-  if (world.intersects(entity.bounds)) {
-    entity.position = entity.lastSafePosition
-    entity.velocity = vec3(0,0,0)
-  }
+if (world.intersects(entity.bounds)) {
+  entity.position = entity.lastValidPosition
+  entity.velocity = vec3(0,0,0)
 }
 </pre>
 </section>
 
 <section id="sync">
-<h2>Синхронизация</h2>
+<h2>Синхронизация состояния</h2>
 <p>
-Сервер отправляет:
+Сервер отправляет authoritative state:
 </p>
 <ul>
-<li>позицию</li>
-<li>скорость</li>
-<li>состояние</li>
+<li>позиции</li>
+<li>скорости</li>
+<li>состояния</li>
 </ul>
 
 <p>
@@ -297,47 +280,93 @@ function resolveCollision(entity, world) {
 </p>
 <ul>
 <li>интерполирует</li>
+<li>корректирует</li>
 <li>визуализирует</li>
-<li>корректирует расхождения</li>
 </ul>
 </section>
 
-<section id="security">
-<h2>Безопасность</h2>
+<section id="interest">
+<h2>Interest Management</h2>
 <p>
-Минимальные требования:
+Для масштабирования сервер отправляет клиенту
+только релевантные сущности.
 </p>
+
+<pre>
+if (distance(player, entity) < VIEW_RADIUS)
+  send(entity)
+</pre>
+</section>
+
+<section id="anticheat">
+<h2>Anti-Cheat архитектура</h2>
 <ul>
-<li>rate limit RPC</li>
-<li>серверные таймеры</li>
-<li>проверка расстояний</li>
-<li>серверные cooldown</li>
+<li>Rate limiting RPC</li>
+<li>Distance validation</li>
+<li>Server cooldowns</li>
+<li>Input sanity checks</li>
 </ul>
 
 <div class="note">
-Если действие невозможно физически — оно отклоняется.
+Античит — это архитектура, а не модуль.
 </div>
 </section>
 
-<section id="examples">
-<h2>Пример серверного цикла</h2>
+<section id="example">
+<h2>Reference Server Loop</h2>
 
 <pre>
-// Server tick loop
 function serverTick(dt) {
-  for (player of players) {
-    applyMovement(player, player.input, dt)
-    resolveCollision(player, world)
-    integrate(player, dt)
-  }
+  collectInputs()
+  applyPhysics(dt)
+  resolveCollisions()
+  validateState()
   broadcastState()
 }
 </pre>
 
 <p>
-Этот цикл является сердцем серверной симуляции
-и не имеет клиентских аналогов.
+Этот цикл является сердцем системы.
 </p>
+</section>
+
+<section id="playit">
+<h2>Playit.gg, NAT и публикация</h2>
+<p>
+Playit используется для публикации сервера,
+находящегося за NAT или без публичного IP.
+</p>
+
+<pre>
+Client → Playit Public Endpoint → Tunnel → Local Server
+</pre>
+
+<p>
+Playit решает проблему доступности,
+но не заменяет безопасность сервера.
+</p>
+</section>
+
+<section id="mistakes">
+<h2>Типичные ошибки</h2>
+<ul>
+<li>Передача позиции от клиента</li>
+<li>Клиентская физика</li>
+<li>Отсутствие tick-системы</li>
+<li>Отсутствие валидации</li>
+</ul>
+</section>
+
+<section id="conclusion">
+<h2>Заключение</h2>
+<p>
+Эта архитектура является фундаментом
+для безопасных и масштабируемых мультиплеерных систем.
+</p>
+
+<div class="note">
+Если сервер не авторитет — это не мультиплеер.
+</div>
 </section>
 
 </main>
