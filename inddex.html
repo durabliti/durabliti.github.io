@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Universal Multiplayer RPC Specification</title>
+<title>Universal Multiplayer & Server-Authoritative Physics Specification</title>
 
 <style>
 :root {
@@ -29,9 +29,8 @@ body {
   color:var(--text);
 }
 
-/* SIDEBAR */
 nav {
-  width:280px;
+  width:300px;
   height:100vh;
   position:fixed;
   padding:20px;
@@ -42,37 +41,39 @@ nav {
 
 nav h1 {
   font-size:18px;
-  margin:0 0 10px;
+  margin-bottom:10px;
 }
 
 nav a {
   display:block;
-  padding:6px 0;
-  font-size:14px;
   color:var(--text);
   text-decoration:none;
+  padding:6px 0;
+  font-size:14px;
 }
 
 nav a:hover { color:var(--accent); }
 
-/* CONTENT */
 main {
-  margin-left:280px;
+  margin-left:300px;
   padding:40px;
   max-width:1100px;
 }
 
-section { margin-bottom:70px; }
+section { margin-bottom:90px; }
 
 h2 {
   border-bottom:1px solid var(--border);
   padding-bottom:6px;
-  margin-top:50px;
+  margin-top:60px;
 }
 
-h3 { margin-top:30px; }
+h3 { margin-top:40px; }
 
-p { line-height:1.7; color:var(--muted); }
+p {
+  line-height:1.8;
+  color:var(--muted);
+}
 
 pre {
   background:var(--code);
@@ -85,21 +86,20 @@ pre {
 table {
   width:100%;
   border-collapse:collapse;
-  margin-top:15px;
+  margin-top:20px;
 }
 
 th,td {
   border:1px solid var(--border);
   padding:8px;
-  text-align:left;
 }
 
 th { background:var(--panel); }
 
 .note {
   border-left:4px solid var(--accent);
-  padding:12px;
-  margin:20px 0;
+  padding:14px;
+  margin:25px 0;
   background:var(--panel);
 }
 </style>
@@ -108,18 +108,18 @@ th { background:var(--panel); }
 <body>
 
 <nav>
-<h1>Multiplayer RPC</h1>
+<h1>Multiplayer Spec</h1>
 <a href="#intro">Введение</a>
-<a href="#terms">Термины</a>
+<a href="#philosophy">Философия</a>
 <a href="#architecture">Архитектура</a>
+<a href="#threat">Модель угроз</a>
 <a href="#protocol">Протокол</a>
-<a href="#lifecycle">Lifecycle</a>
-<a href="#rpc">RPC контракт</a>
-<a href="#state">State Sync</a>
-<a href="#prediction">Prediction</a>
-<a href="#errors">Ошибки</a>
+<a href="#physics">Server-side Physics</a>
+<a href="#movement">Перемещение</a>
+<a href="#collision">Коллизии</a>
+<a href="#sync">Синхронизация</a>
 <a href="#security">Безопасность</a>
-<a href="#scaling">Масштабирование</a>
+<a href="#examples">Код</a>
 </nav>
 
 <main>
@@ -127,152 +127,217 @@ th { background:var(--panel); }
 <section id="intro">
 <h2>Введение</h2>
 <p>
-Этот документ описывает универсальную клиент-серверную модель
-мультиплеера с серверным авторитетом.
-Подходит для игр, симуляторов и realtime-приложений.
+Этот документ описывает универсальную архитектуру мультиплеера,
+в которой сервер является единственным авторитетом над состоянием мира,
+включая физику, столкновения, скорость, гравитацию и взаимодействия.
 </p>
-<div class="note">
-Клиент считается недоверенным по умолчанию.
-</div>
+<p>
+Документация предназначена для разработчиков игр, симуляторов и
+realtime-приложений, где критичны целостность данных, защита от читинга
+и предсказуемость поведения системы.
+</p>
 </section>
 
-<section id="terms">
-<h2>Термины</h2>
-<table>
-<tr><th>Термин</th><th>Описание</th></tr>
-<tr><td>Client</td><td>Источник ввода, не владеет состоянием</td></tr>
-<tr><td>Server</td><td>Единственный авторитет</td></tr>
-<tr><td>Entity</td><td>Объект мира</td></tr>
-<tr><td>RPC</td><td>Удалённый запрос действия</td></tr>
-<tr><td>Snapshot</td><td>Полное состояние мира</td></tr>
-<tr><td>Delta</td><td>Изменение состояния</td></tr>
-<tr><td>Tick</td><td>Шаг симуляции</td></tr>
-</table>
+<section id="philosophy">
+<h2>Философия системы</h2>
+<p>
+Клиент никогда не считается доверенной стороной.
+Любые данные, полученные от клиента, трактуются как намерения,
+а не как фактическое изменение состояния.
+</p>
+<p>
+Сервер:
+</p>
+<ul>
+<li>обрабатывает ввод</li>
+<li>рассчитывает физику</li>
+<li>разрешает коллизии</li>
+<li>публикует итоговое состояние</li>
+</ul>
+
+<div class="note">
+Если клиент управляет физикой — это не мультиплеер, а симуляция доверия.
+</div>
 </section>
 
 <section id="architecture">
 <h2>Архитектура</h2>
 <pre>
-Client ──RPC──▶ Server
-Client ◀─State─ Server
+Client → Input → RPC → Server
+Server → Physics → State → Client
 </pre>
+
+<p>
+Клиент отправляет только ввод: направления, кнопки, намерения.
+Ни позиция, ни скорость, ни столкновения не принимаются от клиента.
+</p>
+</section>
+
+<section id="threat">
+<h2>Модель угроз</h2>
+<p>
+Система проектируется с учётом того, что клиент может:
+</p>
 <ul>
-<li>Сервер владеет логикой</li>
-<li>Клиент отправляет намерения</li>
-<li>Сервер решает результат</li>
+<li>подделывать пакеты</li>
+<li>ускорять время</li>
+<li>отправлять невозможные значения</li>
+<li>модифицировать память</li>
+</ul>
+
+<p>
+Поэтому сервер обязан проверять:
+</p>
+<ul>
+<li>длину векторов</li>
+<li>частоту RPC</li>
+<li>физическую достижимость действий</li>
 </ul>
 </section>
 
 <section id="protocol">
-<h2>Формат протокола</h2>
+<h2>Протокол сообщений</h2>
 <pre>
 {
-  "type": "handshake | rpc | state | error",
-  "clientId": 0,
-  "seq": 0,
-  "tick": 0,
+  "type": "rpc | state | error",
+  "clientId": 12,
+  "tick": 102334,
   "payload": {}
 }
 </pre>
+
+<p>
+Tick используется для синхронизации симуляции
+и предотвращения рассинхронизации.
+</p>
 </section>
 
-<section id="lifecycle">
-<h2>Lifecycle соединения</h2>
-<pre>
-CONNECT
- ↓
-HANDSHAKE
- ↓
-AUTH
- ↓
-SPAWN
- ↓
-SYNC LOOP
- ↓
-DISCONNECT
-</pre>
-</section>
-
-<section id="rpc">
-<h2>RPC контракт</h2>
-
-<h3>Client → Server</h3>
-<table>
-<tr><th>RPC</th><th>Описание</th></tr>
-<tr><td>Move</td><td>Запрос перемещения</td></tr>
-<tr><td>Action</td><td>Использование способности</td></tr>
-<tr><td>Interact</td><td>Взаимодействие</td></tr>
-</table>
-
-<h3>Server → Client</h3>
-<table>
-<tr><th>RPC</th><th>Описание</th></tr>
-<tr><td>Spawn</td><td>Создание сущности</td></tr>
-<tr><td>Update</td><td>Обновление состояния</td></tr>
-<tr><td>Despawn</td><td>Удаление</td></tr>
-</table>
-</section>
-
-<section id="state">
-<h2>Синхронизация состояния</h2>
-<p>Используются два режима:</p>
+<section id="physics">
+<h2>Server-side Physics</h2>
+<p>
+Вся физика рассчитывается исключительно на сервере.
+Это включает:
+</p>
 <ul>
-<li>Snapshot — восстановление</li>
-<li>Delta — основной поток</li>
+<li>гравитацию</li>
+<li>ускорение</li>
+<li>трение</li>
+<li>столкновения</li>
+<li>ограничения скорости</li>
 </ul>
 
+<p>
+Клиенту запрещено отправлять:
+</p>
+<ul>
+<li>позицию</li>
+<li>скорость</li>
+<li>результаты коллизий</li>
+</ul>
+
+<div class="note">
+Клиент отправляет только ввод, сервер решает результат.
+</div>
+</section>
+
+<section id="movement">
+<h2>Перемещение (Server authoritative)</h2>
+
+<p>
+Клиент отправляет направление движения.
+Сервер применяет силу, учитывая физические ограничения.
+</p>
+
 <pre>
-State {
-  entityId
-  position
-  rotation
-  velocity
+// Псевдокод сервера
+function applyMovement(player, inputDir, dt) {
+  if (length(inputDir) > 1)
+    reject(player)
+
+  acceleration = normalize(inputDir) * player.accel
+  player.velocity += acceleration * dt
+
+  if (length(player.velocity) > player.maxSpeed)
+    player.velocity = normalize(player.velocity) * player.maxSpeed
+}
+</pre>
+
+</section>
+
+<section id="collision">
+<h2>Коллизии</h2>
+<p>
+Коллизии вычисляются только сервером.
+Клиент не может заявлять о попадании или столкновении.
+</p>
+
+<pre>
+function resolveCollision(entity, world) {
+  if (world.intersects(entity.bounds)) {
+    entity.position = entity.lastSafePosition
+    entity.velocity = vec3(0,0,0)
+  }
 }
 </pre>
 </section>
 
-<section id="prediction">
-<h2>Prediction & Reconciliation</h2>
+<section id="sync">
+<h2>Синхронизация</h2>
+<p>
+Сервер отправляет:
+</p>
 <ul>
-<li>Клиент применяет ввод локально</li>
-<li>Хранит историю input</li>
-<li>Сервер присылает authoritative state</li>
-<li>Клиент корректирует расхождения</li>
+<li>позицию</li>
+<li>скорость</li>
+<li>состояние</li>
 </ul>
-</section>
 
-<section id="errors">
-<h2>Ошибки</h2>
-<pre>
-{
-  "type": "error",
-  "code": "INVALID_RPC",
-  "message": "Move vector too large"
-}
-</pre>
+<p>
+Клиент:
+</p>
+<ul>
+<li>интерполирует</li>
+<li>визуализирует</li>
+<li>корректирует расхождения</li>
+</ul>
 </section>
 
 <section id="security">
 <h2>Безопасность</h2>
+<p>
+Минимальные требования:
+</p>
 <ul>
-<li>Rate limiting RPC</li>
-<li>Server-side physics</li>
-<li>Distance checks</li>
-<li>Cooldown validation</li>
+<li>rate limit RPC</li>
+<li>серверные таймеры</li>
+<li>проверка расстояний</li>
+<li>серверные cooldown</li>
 </ul>
+
 <div class="note">
-Логика на клиенте ≠ защита
+Если действие невозможно физически — оно отклоняется.
 </div>
 </section>
 
-<section id="scaling">
-<h2>Масштабирование</h2>
-<ul>
-<li>Interest management</li>
-<li>World sharding</li>
-<li>Tick decoupling</li>
-<li>Region-based sync</li>
-</ul>
+<section id="examples">
+<h2>Пример серверного цикла</h2>
+
+<pre>
+// Server tick loop
+function serverTick(dt) {
+  for (player of players) {
+    applyMovement(player, player.input, dt)
+    resolveCollision(player, world)
+    integrate(player, dt)
+  }
+  broadcastState()
+}
+</pre>
+
+<p>
+Этот цикл является сердцем серверной симуляции
+и не имеет клиентских аналогов.
+</p>
 </section>
 
 </main>
