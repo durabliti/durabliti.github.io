@@ -2,114 +2,144 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>TicTacToe Online</title>
+<title>Online Text Games</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body{
+    margin:0;
     background:#0e0e11;
-    color:white;
+    color:#fff;
     font-family:monospace;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
 }
-.wrap{text-align:center}
-.board{
+header{
+    padding:10px;
+    background:#15151c;
+    text-align:center;
+    font-size:20px;
+}
+main{
     display:grid;
-    grid-template-columns:repeat(3,90px);
-    gap:8px;
-    margin-top:15px;
+    grid-template-columns:250px 1fr;
+    height:calc(100vh - 40px);
 }
-.cell{
-    width:90px;height:90px;
+aside{
+    border-right:1px solid #333;
+    padding:10px;
+}
+section{
+    padding:15px;
+}
+.player{
+    padding:6px;
     background:#1c1c28;
-    font-size:42px;
-    display:flex;
-    justify-content:center;
-    align-items:center;
+    margin-bottom:4px;
+}
+.game{
+    padding:8px;
+    background:#222;
+    margin-bottom:6px;
     cursor:pointer;
 }
-input,button{
-    padding:6px;
-    margin:3px;
-    font-family:monospace;
+.game:hover{background:#333}
+.board{
+    white-space:pre;
+    font-size:20px;
+    margin-top:10px;
 }
 </style>
 </head>
 <body>
 
-<div class="wrap">
-    <div>
-        <input id="room" placeholder="room id">
-        <button onclick="create()">Создать</button>
-        <button onclick="join()">Войти</button>
-    </div>
+<header>🎮 Online Text Games</header>
 
-    <div id="info"></div>
+<main>
+<aside>
+    <b>👥 Онлайн:</b>
+    <div id="players"></div>
+    <hr>
+    <b>🎲 Игры:</b>
+    <div class="game" onclick="loadGame('tic')">Крестики-нолики</div>
+    <div class="game" onclick="loadGame('connect')">Линия 4</div>
+    <div class="game" onclick="loadGame('numbers')">Числа 15</div>
+    <div class="game" onclick="loadGame('territory')">Захват поля</div>
+</aside>
+
+<section>
+    <div id="status"></div>
     <div class="board" id="board"></div>
-</div>
+</section>
+</main>
 
 <script>
-const WS_URL = "wss://ТВОЙ_ДОМЕН_ИЛИ_IP"; // <-- поменяй
-let ws, mySymbol = "";
-let board = Array(9).fill("");
+const WS_URL = "wss://ТВОЙ_ДОМЕН"; // ← поменяй
+let ws, myId = null;
 
-function connect(room, create){
-    ws = new WebSocket(WS_URL);
+const games = {
+tic:()=>`
+ 1 | 2 | 3
+---+---+---
+ 4 | 5 | 6
+---+---+---
+ 7 | 8 | 9
+`,
+connect:()=>`
+[ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][ ][ ][ ]
+[ ][ ][ ][ ]
+`,
+numbers:()=>`
+ 1  2  3
+ 4  5  6
+ 7  8  9
+`,
+territory:()=>`
+ 1 | 2 | 3 | 4
+---+---+---+---
+ 5 | 6 | 7 | 8
+---+---+---+---
+ 9 |10 |11 |12
+`
+};
 
-    ws.onopen = ()=>{
-        ws.send(JSON.stringify({type:create?"create":"join", room}));
-    };
+function connect(){
+    ws=new WebSocket(WS_URL);
 
-    ws.onmessage = e =>{
-        const d = JSON.parse(e.data);
+    ws.onmessage=e=>{
+        const d=JSON.parse(e.data);
 
         if(d.type==="init"){
-            mySymbol=d.symbol;
-            info("Ты играешь за "+mySymbol);
+            myId=d.id;
+            status("Ты в сети: "+myId);
         }
 
-        if(d.type==="state"){
-            board=d.board;
-            draw();
+        if(d.type==="players"){
+            renderPlayers(d.list);
         }
     };
 }
 
-function create(){
-    const id = Math.random().toString(36).slice(2,7);
-    document.getElementById("room").value=id;
-    connect(id,true);
-}
-
-function join(){
-    const id=document.getElementById("room").value;
-    if(id) connect(id,false);
-}
-
-function draw(){
-    const b=document.getElementById("board");
-    b.innerHTML="";
-    board.forEach((v,i)=>{
-        const c=document.createElement("div");
-        c.className="cell";
-        c.textContent=v;
-        c.onclick=()=>move(i);
-        b.appendChild(c);
+function renderPlayers(list){
+    const p=document.getElementById("players");
+    p.innerHTML="";
+    list.forEach(id=>{
+        const d=document.createElement("div");
+        d.className="player";
+        d.textContent=id;
+        p.appendChild(d);
     });
 }
 
-function move(i){
-    if(board[i]) return;
-    ws.send(JSON.stringify({type:"move", index:i}));
+function loadGame(g){
+    document.getElementById("board").textContent=games[g]();
 }
 
-function info(t){
-    document.getElementById("info").textContent=t;
+function status(t){
+    document.getElementById("status").textContent=t;
 }
 
-draw();
+connect();
+loadGame("tic");
 </script>
 </body>
 </html>
