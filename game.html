@@ -1,1 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>TicTacToe Online</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{
+    background:#0e0e11;
+    color:white;
+    font-family:monospace;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+.wrap{text-align:center}
+.board{
+    display:grid;
+    grid-template-columns:repeat(3,90px);
+    gap:8px;
+    margin-top:15px;
+}
+.cell{
+    width:90px;height:90px;
+    background:#1c1c28;
+    font-size:42px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    cursor:pointer;
+}
+input,button{
+    padding:6px;
+    margin:3px;
+    font-family:monospace;
+}
+</style>
+</head>
+<body>
 
+<div class="wrap">
+    <div>
+        <input id="room" placeholder="room id">
+        <button onclick="create()">Создать</button>
+        <button onclick="join()">Войти</button>
+    </div>
+
+    <div id="info"></div>
+    <div class="board" id="board"></div>
+</div>
+
+<script>
+const WS_URL = "wss://ТВОЙ_ДОМЕН_ИЛИ_IP"; // <-- поменяй
+let ws, mySymbol = "";
+let board = Array(9).fill("");
+
+function connect(room, create){
+    ws = new WebSocket(WS_URL);
+
+    ws.onopen = ()=>{
+        ws.send(JSON.stringify({type:create?"create":"join", room}));
+    };
+
+    ws.onmessage = e =>{
+        const d = JSON.parse(e.data);
+
+        if(d.type==="init"){
+            mySymbol=d.symbol;
+            info("Ты играешь за "+mySymbol);
+        }
+
+        if(d.type==="state"){
+            board=d.board;
+            draw();
+        }
+    };
+}
+
+function create(){
+    const id = Math.random().toString(36).slice(2,7);
+    document.getElementById("room").value=id;
+    connect(id,true);
+}
+
+function join(){
+    const id=document.getElementById("room").value;
+    if(id) connect(id,false);
+}
+
+function draw(){
+    const b=document.getElementById("board");
+    b.innerHTML="";
+    board.forEach((v,i)=>{
+        const c=document.createElement("div");
+        c.className="cell";
+        c.textContent=v;
+        c.onclick=()=>move(i);
+        b.appendChild(c);
+    });
+}
+
+function move(i){
+    if(board[i]) return;
+    ws.send(JSON.stringify({type:"move", index:i}));
+}
+
+function info(t){
+    document.getElementById("info").textContent=t;
+}
+
+draw();
+</script>
+</body>
+</html>
